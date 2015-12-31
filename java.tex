@@ -9,6 +9,72 @@ Web Applikationen sind zusammengesetzt aus klassischen Web-Komponenten wie HTML/
 \paragraph{Web-/Servlet-Container}
 Eine Web Applikation läuft innerhalb eines Web Containers. Dieser Container stellt die benötigte Runtime-Umgebung für den entsprechenden Namensraum und Lifecycle Management zur Verfügung. Einige Webserver stellen zusätzliche Services wie Security oder Nebenläufigkeits-Steuerung zur Verfügung (parallele Prozesse).
 
+\paragraph{Tomcat-Embedded}
+Der Tomcat kann sogar in eine Anwendung eingebettet werden.
+
+\begin{lstlisting}[language=Java]
+Tomcat tomcat = new Tomcat();
+tomcat.setPort(3333);
+tomcat.start();
+tomcat.getServer().await();
+\end{lstlisting}
+
+\paragraph{AsyncFileHandler}
+Für High-Traffic-Sites können Async-File-Handler benutzt werden um beispielsweise die Log Messages asynchon zu schreiben. Dieser Handler bildet ein producer/consumer Verhältnis mit einer Queue um Log Messages zu schreiben.
+
+\paragraph{Java EE-Server}
+Wildfly oder Glassfish sind ausgewachsene Java EE-Server, welche weitaus mehr der Java EE-Spec unterstützen. Dafür ist der Footprint des Tomcat um einiges kleiner.
+
+\newpage
+\paragraph{Clustering}
+Mit Tomcat sind 6 sind Features gekommen, welches High Availability (HA) ermöglichen. Für zwei Anwendungsfälle:
+\begin{itemize}
+	\item LOAD-BALANCE: Statischer Content kann direkt vom Apache Server ausgeliefert werden und dynamische Sachen vom Tomcat. Wir benötigen für das mod\_proxy - meiner Meinung nach kein Tomcat Feature, sondern ein Apache Server Erweiterung.
+	\item FAIL-OVER: Falls der Load-Balancer einen Ausfall festestellt, leitet er Traffic nur noch zu den verfügbaren Server weiter. Wir benötigen für das Clustering das Tomcat Session Replication, mod\_jk.
+\end{itemize}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.7\linewidth]{fig/java-tomcat-clustering}
+\caption{}
+\label{fig:java-tomcat-clustering}
+\end{figure}
+
+\newpage
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.7\linewidth]{fig/java-tomcat-mod-jk}
+\caption{Tomcat Clustering mod\_jk}
+\label{fig:java-tomcat-mod-jk}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.7\linewidth]{fig/java-infra}
+\caption{Beispiel Setup}
+\label{fig:java-infra}
+\end{figure}
+
+\newpage
+\paragraph{Web-Sockets}
+Mit Tomcat 7 werden nun auch WebSockets unterstützt, welches eine full-duplex single socket zwischen Client und Server repräsentiert. Wir kennen die Vorteile von Websockets PUSH instead of POLL.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.7\linewidth]{fig/java-websocket-js}
+\caption{Websocket Javascript}
+\label{fig:java-websocket-js}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.7\linewidth]{fig/java-websocket-servlet}
+	\caption{Websocket Servlet}
+	\label{fig:java-websocket-servlet}
+\end{figure}
+
+
+\newpage
 \section{Servlet}
 Servlets sind in Java implementierte Anwendungskomponenten, die auf einem Server ausgeführt werden, um dort Anfragen von Clients zu empfangen und zu bearbeiten. Sie erweitern die Funktionalität des Web Servers massiv. Servlets sind Java Klassen welche dynamisch die Requests verarbeiten und eine Response erzeugen, unabhängig vom Protokoll! Das \verb|GenericServlet| hat nur die Methode \verb|service()| und ist somit protokollunabhängig. Das \verb|HttpServlet| ist auf das HTTP Protokoll bezogen und überschreibt \verb|service()| um die definierten HTTP-Verb Methoden aufzurfen (\verb|doGet() doPost()|). Auf der Klasse \verb|HttpServletRequest| kann \verb|getParameter()| aufgerufen werden um an die GET- und POST-Parameter zu gelangen. Servlets müssen innerhalb des Servlet-Containers laufen., welcher den Lebenszyklus der Servlets verwaltet (\verb||init()|, \verb||service()|, \verb||destroy()|).
 
@@ -71,12 +137,14 @@ Anschliessend wird mit dem Deployment Deskriptor und den Servlet Klasse zusammen
 </web-app>
 \end{lstlisting}
 
+
+
 % Themen:
-% WebAppServer am Beispiel Tomcat
-% WebApp/Servlet Aufbau und Struktur
-% Deployment
-% Beispiele anschauen und nachvollziehen können, Vergleich mit JavaEE
+% done WebAppServer am Beispiel Tomcat
+% done WebApp/Servlet Aufbau und Struktur
+% done Deployment
+% done Beispiele anschauen und nachvollziehen können, Vergleich mit JavaEE
 
 % Dokumente:
-% 05a.Java_im_Webumfeld.pdf
-% 05b.Tomcat_extras.pdf
+% don e05a.Java_im_Webumfeld.pdf
+% done 05b.Tomcat_extras.pdf
