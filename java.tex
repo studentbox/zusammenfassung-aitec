@@ -1,4 +1,82 @@
 \chapter{Java im Webumfeld}
 
-% WebAppServer am Beispiel Tomcat, WebApp/Servlet Aufbau und Struktur, Deployment, Beispiele anschauen und nachvollziehen können, Vergleich mit JavaEE
-% Dokumente: 05a.Java_im_Webumfeld.pdf, 05b.Tomcat_extras.pdf
+\section{Tomcat}
+Der Apache Tomcat Server ist ein Java-basierender Web Application Container der Servlets oder Java Server Pages (JSP) bereit stellt und laufen lässt. \emph{P.S: In the realm of JAVA EE JSP is announced "obsolete". In a wider world it is well alive.}. Der Tomcat kann als Standalone-Produkt oder mit dem Apache-Server zusammen verwendet werden.
+
+\paragraph{Web Applikation}
+Web Applikationen sind zusammengesetzt aus klassischen Web-Komponenten wie HTML/CSS Seiten, dazu kommen nun weitere Komponenten wie Servlets, JSP Seiten, Filter. Wie gewöhnlich Verarbeiten diese Komponenten HTTP Requests von Web Clients.
+
+\paragraph{Web-/Servlet-Container}
+Eine Web Applikation läuft innerhalb eines Web Containers. Dieser Container stellt die benötigte Runtime-Umgebung für den entsprechenden Namensraum und Lifecycle Management zur Verfügung. Einige Webserver stellen zusätzliche Services wie Security oder Nebenläufigkeits-Steuerung zur Verfügung (parallele Prozesse).
+
+\section{Servlet}
+Servlets sind in Java implementierte Anwendungskomponenten, die auf einem Server ausgeführt werden, um dort Anfragen von Clients zu empfangen und zu bearbeiten. Sie erweitern die Funktionalität des Web Servers massiv. Servlets sind Java Klassen welche dynamisch die Requests verarbeiten und eine Response erzeugen, unabhängig vom Protokoll! Das \verb|GenericServlet| hat nur die Methode \verb|service()| und ist somit protokollunabhängig. Das \verb|HttpServlet| ist auf das HTTP Protokoll bezogen und überschreibt \verb|service()| um die definierten HTTP-Verb Methoden aufzurfen (\verb|doGet() doPost()|). Auf der Klasse \verb|HttpServletRequest| kann \verb|getParameter()| aufgerufen werden um an die GET- und POST-Parameter zu gelangen. Servlets müssen innerhalb des Servlet-Containers laufen., welcher den Lebenszyklus der Servlets verwaltet (\verb||init()|, \verb||service()|, \verb||destroy()|).
+
+\paragraph{Servlet-Lebenszyklus}
+\begin{description}
+	\item[INIT:] Objekt wird beim Laden des Servlet-Containers oder bei der ersten Anfrage erzeugt. Dabei wird die Init-Methode aufgerufen, wobei man DB-Verbindungen herstellen kann oder Konfigurationsdaten laden.
+	\item[SERVICE:] Die Anfrage wird in der Service-Methode verarbeitet, welches beim HTTP-Servlet in den HTTP-Verb spezifischen Methoden mündet. Dabei kann auf \verb|ServletRequest| und \verb|ServletResponse| zurückgegriffen werden (bzw. \verb|HttpServletRequest| oder \verb|HttpServletResponse|).
+	\item[DESTROY:] Der Servlet-Container entscheiden wann das Servlet eliminiert wird. Die Destroy-Methode wird aufgerufen. Guter Zeitpunkt um DB-Verbindungen zu schliessen.
+\end{description}
+
+\paragraph{Servlet-API}
+\begin{description}
+	\item[HTTPServletRequest:] getQueryString(), getRemoteUser(), getRequestSessionId(), isRequestedSessionIdValid(), getCookies(), getSession(boolean) (false sofern aktuell eine gültige Session besteht sonst wird eine neue Session erzeugt.),  getMethod() (retourniert wie der Request gemacht wurde)
+	\item[HTTPServletResponse:]	encodeUrl(String), sendRedirect(String), sendError(int), addCookie(Cookie) (fügt Cookie dem Response an)
+\end{description}
+
+\begin{lstlisting}[language=Java, caption=Servlet Sample]
+public class ExampleServlet extends HttpServlet {
+	public void doGet (HttpServletRequest request,
+	HttpServletResponse response)
+	throws ServletException, IOException {
+		response.setContentType("text/html");
+		PrintWriter out=response.getWriter();
+		out.println("<html>");
+		out.println("<head><title>ExampleServlet</title><head>");
+		out.println("<body>");
+		out.println("<h1>Testing Servlet zu Testzwecken</h1>");
+		out.println("</body></html>");
+	}
+}
+\end{lstlisting}
+
+\paragraph{Struktur eine Web-Applikation}
+Die Verzeichnisstruktur ist festgelegt. Das Root-Verzeichnis (Document Root) wird zum 'Context-Path' gemappt. Alles innerhalb des Root-Verzeichnis aus das spezielle WEB-INF ist von aussen zugreifbar.
+
+WEB-INF Verzeichnis beinhaltet:
+\begin{itemize}
+	\item WEB-INF/web.xml - Deployment Descriptor. Hier liegen Meta-Informationen vor.
+	\item WEB-INF/classes - Kompilierte Klassen
+	\item WEB-INF/lib - Verwendete Bibliotheken der Web-Applikation
+\end{itemize}
+
+Anschliessend wird mit dem Deployment Deskriptor und den Servlet Klasse zusammen (und ev. weiteren benötigten Klassen und Dateien) eine Archiv-Datei erzeugt (.war –Datei). Diese kann anschliessend deployt werden.
+
+\begin{lstlisting}[caption=web.xml Sample]
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
+	<display-name>Tomcat Example Servlet App</display-name>
+	<description>A small Example Servlet App</description>
+	<servlet>
+		<servlet-name>ExampleServlet</servlet-name>
+		<servlet-class>ExampleServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ExampleServlet</servlet-name>
+		<url-pattern>/ExampleServlet</url-pattern>
+	</servlet-mapping>
+	<welcome-file-list>
+		<welcome-file>/pages/ExampleServlet.html</welcome-file>
+	</welcome-file-list>
+</web-app>
+\end{lstlisting}
+
+% Themen:
+% WebAppServer am Beispiel Tomcat
+% WebApp/Servlet Aufbau und Struktur
+% Deployment
+% Beispiele anschauen und nachvollziehen können, Vergleich mit JavaEE
+
+% Dokumente:
+% 05a.Java_im_Webumfeld.pdf
+% 05b.Tomcat_extras.pdf
