@@ -2,7 +2,7 @@
 
 
 \section{Proxy}
-Ein Proxy ist ein Stellvertreter oder auch Vermittler. Oft wird die Funktionalität des Proxy sowie die des \textbf{Cache} in einem Server/Device angeboten. Der Cache speichert die Antwort des Client-Requests. Damit wird bei einem späteren Request eines Clients der Zugriff auf die Ressource ins Internet vermieden. Wir unterscheiden zwei Proxy-Arten:
+Ein \textbf{Proxy} ist ein Stellvertreter oder auch Vermittler. Wir unterscheiden zwei Proxy-Arten:
 
 \begin{description}
 	\item[Forward Proxy:] Versteckt die Identität des Client vor dem Server. Der Client ruft einen Server über einen Proxy auf, dabei weiss der Server nicht, wer der konkrete Client ist.
@@ -16,11 +16,13 @@ Ein Proxy ist ein Stellvertreter oder auch Vermittler. Oft wird die Funktionalit
 	\label{fig:cms-reverse-proxy-cache}
 \end{figure}
 
-\section{Web Application Firewall}
-Eine Web Application Firewall (WAF) werden oft auch \emph{Deep Packet Inspection Firewall} genannt und geht im Grundsatz auf zwei Fragen ein: Wer jemand ist und was er tut. WAFs suchen gezielt nach Signaturen einer Attacke oder nach abnormalen Verhalten. WAFs können als Reverse Proxy auf dem Weg zum Webserver installiert werden. Ein wesentlicher Vorteil ist, dass man bestehende Web-Applikationen \textbf{nachträglich absichern} kann, falls diese \textbf{keinen ausreichenden Schutz} gewähren. So muss man die Web-Applikation nicht umprogrammieren. Airlock ist eine sehr gute WAF, welche auch Loadbalancing und Reverse Proxy kann. Gemäss Infanger sogar die beste und ein Produkt aus der Schweiz. Auf dem Markt existieren nur 5 WAFs, welche brauchbar sind.
+Oft wird die Funktionalität des Proxy sowie die des \textbf{Cache} in einem Server/Device angeboten. Der Cache speichert die Antwort des Client-Requests. Damit wird bei einem späteren Request eines Clients der Zugriff auf die Ressource ins Internet vermieden.
 
-\section{Loadbalancer}
-Leitet die Anfrage an einen 'freien' Server weiter und muss dafür kontinuierlich die Serverlasten messen. Das führt dazu, dass der Loadbalancer Request-Queues verwalten muss. Dies wird oft mit einem Reverse Proxy oder WAF kombiniert.
+\section{Web Application Firewall}
+Eine Web Application Firewall (WAF) werden oft auch \emph{Deep Packet Inspection Firewall} genannt und geht im Grundsatz auf zwei Fragen ein: Wer jemand ist und was er tut. WAFs suchen gezielt nach Signaturen einer Attacke oder nach abnormalen Verhalten. WAFs können als Reverse Proxy auf dem Weg zum Webserver installiert werden. Ein wesentlicher Vorteil ist, dass man bestehende Web-Applikationen \textbf{nachträglich absichern} kann, falls diese \textbf{keinen ausreichenden Schutz} gewähren. So muss man die Web-Applikation nicht umprogrammieren. Airlock ist eine sehr gute WAF, welche auch Load Balancing und Reverse Proxy kann. Gemäss Infanger sogar die beste und ein Produkt aus der Schweiz. Auf dem Markt existieren nur 5 WAFs, welche brauchbar sind.
+
+\section{Load Balancer}
+Leitet die Anfrage an einen 'freien' Server weiter und muss dafür kontinuierlich die Serverlasten messen. Das führt dazu, dass der Load Balancer Request-Queues verwalten muss. Dies wird oft mit einem Reverse Proxy oder WAF kombiniert. Hardware Load Balancer sind schneller dafür sind Software Load Balancer besser anpassbar. 
 
 \subsection{DNS Round Robin}
 Ein simple Idee wäre, dass gleich der DNS-Dienst eine Lastverteilung durchführt. Wenn ein Client X kommt, dann bekommt er die IP des Server A, wenn Client Y kommt dann bekommt er die IP des Server B. Aber das geht nur bedingt, da im DNS Bereich viel gecacht wird und nicht für jeden Request der DNS angefragt wird. Grosse Firmen benutzen dies schon auch. Ich denke, dass es beispielsweise Sinn machen kann, dass Netflix bei Anfragen aus Europa, dann die europäischen Netflix-Server zurückliefert und Anfragen in Amerika die entsprechenden Server dort.
@@ -28,19 +30,81 @@ Ein simple Idee wäre, dass gleich der DNS-Dienst eine Lastverteilung durchführ
 \subsection{DNS und Reverse Proxy}
 Über den DNS wird die IP des Reverse Proxy mitgeteilt. Das Load Balancing wird anschliessend vom Reverse Proxy vollständig umgesetzt.
 
+\section{Skalierung}
+Mit viralem Marketing kann in Sekundenschnelle sehr grossen Erfolg erzielt werden und dann möchte man von einem Moment auf den anderen Millionen von Benutzer bedienen ohne Downtime! Es gibt dazu mehrere \textbf{Variabeln}, welche wir bei der Skalierung berücksichtigen müssen:
 
+\begin{description}
+	\item[Scalability:] Die Anzahl von Benutzern / Sessions / Transaktionen / Operationen soll nicht beschränkt und beliebig erweiterbar sein. (möglichst hoch)
+	\item[Performance:] Die Ressourcen sollen optimal genutzt werden. (hoch)
+	\item[Responsiveness:] Dies bezieht sich auf die Zeit pro Operation. (hoch)
+	\item[Availability:] Die Verfügbarkeit der Applikation. (hoch)
+	\item[Downtime impact:] Auswirkung der Downtime auf beispielsweise die Anzahl Benutzer. (niedrig)
+	\item[Kosten:] Natürlich soll alles nichts Kosten. (niedrig)
+	\item[Maintenance Effort:] Wie viel Wartungsaufwand mit der Architektur verbunden ist. (niedrig)
+\end{description}
 
-% Themen
+Folgende \textbf{Faktoren} haben Einfluss auf Skalierungs-Möglichkeiten:
+\begin{itemize}
+	\item Platform selection
+	\item Hardware
+	\item Application Design
+	\item Database/Datastore Structure and Architecture
+	\item Deployment Architecture
+	\item Storage Architecture
+	\item Abuse prevention
+	\item Monitoring mechanisms
+\end{itemize}
+
+\subsection{Skalierungs-Arten}
+\begin{description}
+	\item[Vertikal skalieren:] \emph{Scaling Up} - Wir können immer schnell vertikal skalieren. Man skaliert den einzelnen Node, einfach mehr Hardware reinbuttern. Aber irgendwann ist fertig. Hardware skaliert nicht linear. Benötigt Downtime und erhöht auch den Downtime Impact. Lineare Kosten wachsen exponentiell.
+	
+	\item[Vertikal partitionieren] Mit vertikaler Partitionierung lagern wir einzelne Tasks auf einzelne Server aus. Jeder Node ist somit anders als der andere. Dies kann auch auf unterschiedlichen Levels angegangen werden: Applikation, Server, Data, Hardware.
+	Beispielsweise haben wir einen einzigen Server auf dem ein Web- sowie DB-Server läuft. Nun partitionieren wir vertikal und somit trennen wir Web- sowie DB- Server auf einzelnen Server. Erhöht die Verfügbarkeit, weniger Kontext-Switching u.w. Die Verfügbarkeit des Gesamt-Systems wird jedoch nicht erhöht und irgendwann kann dann nicht mehr vertikal partitioniert werden. Zudem ist jeder Node anders - viel Spass damit!
+	
+	\item[Horizontal skalieren] \emph{Scaling out} - Nun stellen wir für die gleiche Aufgabe mehrere Nodes zur Verfügung und stellen einen Load Balancer davor. Jeder Node macht dabei dasselbe und sieht identisch wie die anderen Nodes aus. Die Collection von identischen Nodes wird oft Cluster genannt.
+	
+	\item[Horizontal partitionieren] Bei den richtig fetten Systemen kommt man um die horizontale Partitionierung nicht rum. Auf Stufe DB würden wir beispielsweise 1 Million User in den ersten Cluster stecken und die nächste Million in den zweiten Cluster. Wir trennen also die Daten. Damit der Benutzer den richtigen Cluster bekommt, muss mit Hash-Tabellen gearbeitet werden.
+\end{description}
+Erfolgreiche Skalierung benötigt alle vier Methoden der Skalierung! 
+
+\subsection{Session-Management}
+Falls ein Load Balancer eingesetzt wird, muss man sich fragen, wo die Session-Daten gespeichert werden.
+\begin{description}
+	\item[Sticky Session:] Requests von einem bestimmten Client laufen immer über den gleichen Server. So müssen die Session-Daten nur auf dem Server vorhanden sein. Kann aber zu asymmetrischen Lastverteilungen führen und hat einen Downtime Impact, denn die Daten gehen verloren, falls der Server abstürzt.
+	\item[Central Session Store:] Auch bekannt als Shared Session Store Cluster. Alle Server verwenden einen zentralen Speichern für die Session-Daten. Dieser zentraler Speicher ist aber ein SPOF (single point of failure).
+	\item[Clustered Session Management:] Auch bekannt als Shared-nothing Cluster. In dieser Variante werden alle Server in einen Cluster gesetzt. Die Server replizieren ihren Status. Es ist einfach aufzusetzen und stellt keinen SPOF dar. Lese-Operationen gehen schnell, Schreib-Operationen generieren Netzwerk-Traffic. Dieser zusätzliche Traffic steigt exponentiell zu den Anzahl an Knoten im Cluster.
+	\item[Sticky Session with Central Session Store:] Hat den Vorteil, dass es keinen Downtime Impact mehr gibt. Und wir generieren nicht zusätzlich I/O.
+	\item[Stick Session with Clustered Session Management:] Keine spezifischen Vorteile.
+\end{description}
+Als Empfehlung sollte wo immer möglich Clustered Session Management verwendet werden, falls die Zahl der Server klein ist und nicht gerade viele Session-Daten geschrieben werden müssen. Falls dies nicht der Fall ist, muss auf Central Session Store zurückgegriffen werden. Und Sticky Session nur verwenden, wenn notwendig.
+
+\subsection{Load Balancer}
+Verwendet man nur einen Load Balancer hat man einen SPOF. Zwei Varianten eliminieren diesen SPOF:
+\begin{description}
+	\item[Active-Active:] Es werden dabei mehrere Load Balancer eingesetzt, welche alle im Betrieb sind. Dabei kann jeder Load Balancer unabhängig von den Anderen den Load übernehmen.
+	\item[Active-Passive:] Dabei ist der eine Load-Balancer im passiven Modus und überwacht den aktiven Load-Balancer. Falls er das Gefühl halt eingreifen zu müssen, dann kann er das tun.
+\end{description}
+
+\subsection{DB-Server}
+Was sich lohnt ist, dass man den DB-Server vertikal partioniert und den Speicher in ein SAN auslagert - hier wird auf Stufe Hardware partitioniert. Nun können die DB-Server nämlich zusätzlich horizontal skaliert werden:
+\begin{description}
+	\item[Shared Nothing Cluster:] Alle DB Server haben die gesamte DB zur Verfügung. Die DB Nodes replizieren ihren Stand der Daten auf Stufe Applikation, DB oder Treiber. Die meisten RDMBS können replizieren - verwende wenn möglich Replizierung auf Stufe RDMBS - robuste Implementation! Dabei gibt es unterschiedliche Modis: Im \emph{Master-Slave Modus} werden Schreib-Operationen an einen Master gesendet, welcher anschliessend die Replizierung übernimmt. Im \emph{Multi-Master Modus} kann an einen beliebigen Master die Schreib-Operation gesendet werden, aber Achtung: Deadlocks, Conflict Management. Zudem kann das ganze \emph{synchron} (garantiert, blockiert bis alle Slaves das ok geben, alle haben immer die gleichen Daten) wie auch \emph{asynchron} (garantiert, Master modifiziert seine DB und gibt das ok) erfolgen.
+	\item[Real Application Cluster:] Alle DB Server greifen auf die gleichen Daten zu. Damit hat nicht mehr jeder DB Server eine Kopie der Datenbank. Aktuell kann nur Oracle das - und ist sehr teuer!
+\end{description}
+Als Empfehlung sollte man DBs wählen, welche Master-Slave Replizierungen zulassen - anschliessend soll asynchron repliziert werden. Zudem soll ein DAO-Layer implementiert werden, welche sicherstellt, dass Writes nur zu einem DB-Server gesendet werden und Reads load balanced.
+
+% Themen:
 % Aufbau WCMS Systeme
 % n-tier Architektur
 % Server-Typen
 % Performance-Indikatoren
 % Session-Handling
-% vertical und horizontal Scaling/Partitioning
+% done vertical und horizontal Scaling/Partitioning
 % Netzwerk-Infrastrukturen (Sicherheit-Loadbalancing-SPOF)
 % done Reverse Proxy: Funktionsweise und Verwendungszweck bzw. Einsatzmöglichkeiten.
 
 % Dokumente: 
 % 03a.CMS-Systeme.pdf
 % done 03b.ReverseProxySysteme.pdf (ausser Airlock Setup)
-% 03c.building-scalable-architecture.pdf (grundsätzliche Prinzipien der Skalierung aber ohne DB-interne und SAN Aspekte, bis Seite 30)
+% done 03c.building-scalable-architecture.pdf (grundsätzliche Prinzipien der Skalierung aber ohne DB-interne und SAN Aspekte, bis Seite 30)
