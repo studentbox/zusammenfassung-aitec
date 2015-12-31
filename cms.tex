@@ -1,5 +1,73 @@
 \chapter{CMS}
 
+\section{Generelles}
+Ein \textbf{Content-Management-System} (kurz CMS, deutsch Inhaltsverwaltungssystem) ist eine Software zur gemeinschaftlichen Erstellung, Bearbeitung und Organisation von Inhalten (Content) zumeist in Webseiten, aber auch in anderen Medienformen.
+In einer \textbf{N-Tier Architektur} bildet ein oder mehreren Server einen Tier wobei jeder Tier eine wohldefinierte Rolle besitzt. Tiers sind über das Netzwerk miteinander verbunden.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.7\linewidth]{fig/cms-generelle-referenz-architektur}
+\caption{Generelle Referenz-Architektur}
+\label{fig:cms-generelle-referenz-architektur}
+\end{figure}
+
+\emph{Die Abbildung \ref{fig:cms-generelle-referenz-architektur} soll zeigen, dass es eine oder mehrere Verbindung zum Internet durch verschiedene ISPs geben soll. Im Bild sind die vielen Netzwerkomponenten wie Router, Firewall, Switches nicht ersichtlich. Transaction Server und Applikation Server sind Synonme, beide wicklen Businesslogik ab.}
+
+Als \textbf{Server} wird ein Prozess auf einem Host (Programm) aber auch ein Host in einem Netzwerk (Maschine) bezeichnet. Die erste Bezeichnung trifft es oft besser, denn es können verschieden Server auf einem und demselben Host laufen. Wobei die angebotene Funktionalität von der Art der Software, dem Netzwerkstack, dem BS sowie der Hardware abhängt.
+
+In der \textbf{eBusiness Architektur} ist wichtig zu wissen, dass nicht nur der eigene Tier-Stack funktionieren muss, sondern übers Internet oft auch Third-party services angebunden werden (Ads, Payment, ..).
+
+Ein \textbf{Web-Server} handhabt das HTTP Protokoll. Einzelne Connections bei HTTP 1.0 und persistente Connections bei HTTP 1.1 und nun kommt HTTP 2.0 (SPDY). Web-Server laufen in Multi-Process oder Multi-Threaded Modus. Der Multi-Threaded Modus ist sexier, aber kann den ganzen Prozess in Mitleidenschaft ziehen, falls was schief geht. Multi-Prozess ist teurer aber arbeiten vollständig unabhängig.
+
+Vielfach wird die Prüfung der Identität durch den Web Server durchgeführt, welche somit auch die Rolle des \textbf{Authentisierungs Server} einnimmt.
+
+Der \textbf{Applikation Server} ist zuständig für die dynamische Seitenerzeugung. Beinhaltet die Business-Logik. Beinhaltet die Session-Steuerung. Es können Standalone Applikationen, welche vom App Server ausgeführt werden (CGI, Fast CGI) oder Server-side Scripting, welche durch den App-Server interpretiert werden (ASP, PHP oder JSP).
+
+Ein \textbf{Datenbank Server} speichert für die Applikation notwendigen Daten. Komplexe Queries lassen sich als 'stored procedures' intern speichern, diese sind pre-compiliert und parametrisiert. Einen Datebank-Server zu optimieren bzw. zu skalieren ist oft schwierig (siehe Kapitel Skalierung).
+
+CGI bedeutet \textbf{Common Gateway Interface} und stellt eine Standard-Schnittstellen zu externer Applikationssoftware dar. Bei CGI ist jeder Request ein neuer Prozess und bei Fast-CGI wird Multi-Threading verwendet.
+
+\textbf{Sichere Kommunikation} mit dem Web Server kann über SSL/TLS verfolgen. Dabei nimmt aber die Serverperformance ab. Damit der Server HTTPS nutzt, muss der Admin ein Public-Zertifikat erzeugen (CSR). Dieses muss durch eine CA (certifcate authority) signiert werden. Die Idendität des Web Servers wird damit bestätigt. 
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.7\linewidth]{fig/cms-ablauf-verifikation-von-zertifikaten}
+	\caption{Verifikation von Zertifikaten}
+	\label{fig:cms-ablauf-verifikation-von-zertifikaten}
+\end{figure}
+
+\subsection{Sessions}
+Die Zustandslosigkeit des HTTP Protokoll führt dazu, dass Entwickler den Status auf Stufe Applikation implementieren muss - was in \textbf{Sessions} mündet. Damit die beliebten Warenkorbs in den Webshops realisiert werden können, gibt es verschiedene Möglichkeiten:
+\begin{description}
+	\item[URL rewriting:] Alle Links auf einer Seite bei der Auslieferung modifizieren und mit einem Session Key bestücken. Falls der Link herumgereicht wird, kann die Session übernommen werden.
+	\item[Verstecke form-Variabeln:] Man versteckt den Session Key in der Form Variabeln. Ist immerhin sicherere als die obere Variante, aber ist natürlich absoluter Müll, da nun immer POST-Requests gemacht werden müssen. Die Navigation ist Form-based keine typischen Links <a> möglich.
+	\item[Cookies:] Session Key in einem kleinen Informationsspeicher - dem Cookie - ablegen. Ein Cookie ist ein 4-Tuple aus Name, Werte, Ablaufdatum, Domain. Achtung: Nur kleine Datenmengen, Cookies können manipuliert werden, Client kann Cookies verweigern.
+\end{description}
+
+\subsection{Netzwerk Infrastruktur}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\linewidth]{fig/cms-netzwerkinfrastruktur}
+	\caption{Netzwerk Infrastruktur}
+	\label{fig:cms-netzwerkinfrastruktur}
+\end{figure}
+
+Beispiel 1: Zeigt, dass alle Server hinter dem Router im selben Netz sind. Umso mehr Elemente im gleichen Netz sind umso mehr wird das Netzwerk belastet und warum sollte der Web Server im gleichen Netz wie der DB Server sein? Diese dürfen sowieso nicht miteinander schwatzen.
+
+Beispiel 2: Für jeden Tier sein eigens Netz. Nun haben wir etwas mehr Sicherheit, aber Routing ist teuer! Um an den DB Server zu gelangen muss nun immer über 3 Router gegangen werden.
+
+Beispiel 3: Jeder Tier befindet sich in zwei Netzen. Dies erfordert einfach, dass jeder Server zwei NICs hat. Hier wird dafür Switching verwendet, welches performanter als Routing ist.
+
+\textbf{Internet-Verbindungen} sollten redundant ausgelegt werden. Die minimale Bandbreite muss garantiert werden und übliche Bandbreiten sind >= 100 MBit/S.
+
+\subsection{Performance-Indikatoren}
+\begin{description}
+	\item[Latenz (Latency):] Benötigte Zeit um eine 0 Byte grosse Seite auszuliefern. Einheit: http/s oder s/http
+	\item[Durchsatz (Throughput):] Maximale Geschwindigkeit mit der eine (unendlich grosse) Seite gesendet werden kann. Einheit: Bytes/s oder Mbytes/s.
+	\item[Requests:] Wie viele Requests pro Sekunden gemacht werden können. Einheit: Anzahl Request/s.
+	\item[Delay T:] T = Latency + ByteHTML / Throughput. Diese Gleichung gilt wenn die anderen Architekturelemente nicht üebrlastet sind und der Web-Server nicht seinen maximalen Workload erreicht hat. Beispiel: T= 0,1s + ((100KBytes) / (800KBytes/s)) = 0,225s
+\end{description}
 
 \section{Proxy}
 Ein \textbf{Proxy} ist ein Stellvertreter oder auch Vermittler. Wir unterscheiden zwei Proxy-Arten:
@@ -95,16 +163,16 @@ Was sich lohnt ist, dass man den DB-Server vertikal partioniert und den Speicher
 Als Empfehlung sollte man DBs wählen, welche Master-Slave Replizierungen zulassen - anschliessend soll asynchron repliziert werden. Zudem soll ein DAO-Layer implementiert werden, welche sicherstellt, dass Writes nur zu einem DB-Server gesendet werden und Reads load balanced.
 
 % Themen:
-% Aufbau WCMS Systeme
-% n-tier Architektur
-% Server-Typen
-% Performance-Indikatoren
-% Session-Handling
+% done Aufbau WCMS Systeme
+% done n-tier Architektur
+% done Server-Typen
+% done Performance-Indikatoren
+% done Session-Handling
 % done vertical und horizontal Scaling/Partitioning
-% Netzwerk-Infrastrukturen (Sicherheit-Loadbalancing-SPOF)
+% done Netzwerk-Infrastrukturen (Sicherheit-Loadbalancing-SPOF)
 % done Reverse Proxy: Funktionsweise und Verwendungszweck bzw. Einsatzmöglichkeiten.
 
 % Dokumente: 
-% 03a.CMS-Systeme.pdf
+% done 03a.CMS-Systeme.pdf
 % done 03b.ReverseProxySysteme.pdf (ausser Airlock Setup)
 % done 03c.building-scalable-architecture.pdf (grundsätzliche Prinzipien der Skalierung aber ohne DB-interne und SAN Aspekte, bis Seite 30)
