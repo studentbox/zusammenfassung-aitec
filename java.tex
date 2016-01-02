@@ -1,7 +1,7 @@
 \chapter{Java im Webumfeld}
 
 \section{Tomcat}
-Der Apache Tomcat Server ist ein Java-basierender Web Application Container der Servlets oder Java Server Pages (JSP) bereit stellt und laufen lässt. \emph{P.S: In the realm of JAVA EE JSP is announced "obsolete". In a wider world it is well alive.}. Der Tomcat kann als Standalone-Produkt oder mit dem Apache-Server zusammen verwendet werden.
+Der Apache Tomcat Server ist ein Java-basierender Web Application Container der Servlets oder Java Server Pages (JSP) bereit stellt und laufen lässt. \emph{P.S: In the realm of JAVA EE JSP is announced \textit{obsolete}. In a wider world it is well alive.}. Der Tomcat kann als Standalone-Produkt oder mit dem Apache-Server zusammen verwendet werden.
 
 \paragraph{Web Applikation}
 Web Applikationen sind zusammengesetzt aus klassischen Web-Komponenten wie HTML/CSS Seiten, dazu kommen nun weitere Komponenten wie Servlets, JSP Seiten, Filter. Wie gewöhnlich Verarbeiten diese Komponenten HTTP Requests von Web Clients.
@@ -27,16 +27,16 @@ Wildfly oder Glassfish sind ausgewachsene Java EE-Server, welche weitaus mehr de
 
 \newpage
 \paragraph{Clustering}
-Mit Tomcat sind 6 sind Features gekommen, welches High Availability (HA) ermöglichen. Für zwei Anwendungsfälle:
+Mit Tomcat 6 sind Features gekommen, welches High Availability (HA) ermöglichen. Für zwei Anwendungsfälle:
 \begin{itemize}
-	\item LOAD-BALANCE: Statischer Content kann direkt vom Apache Server ausgeliefert werden und dynamische Sachen vom Tomcat. Wir benötigen für das mod\_proxy - meiner Meinung nach kein Tomcat Feature, sondern ein Apache Server Erweiterung.
-	\item FAIL-OVER: Falls der Load-Balancer einen Ausfall festestellt, leitet er Traffic nur noch zu den verfügbaren Server weiter. Wir benötigen für das Clustering das Tomcat Session Replication, mod\_jk.
+	\item LOAD-BALANCE: Statischer Content kann direkt vom Apache Server ausgeliefert werden und dynamische Sachen vom Tomcat. Wir benötigen für das mod\_proxy - meiner Meinung nach kein Tomcat Feature, sondern eine Apache Server Erweiterung.
+	\item FAIL-OVER: Falls der Load-Balancer einen Ausfall feststellt, leitet er Traffic nur noch zu den verfügbaren Server weiter. Wir benötigen für das Clustering das Tomcat Session Replication, mod\_jk.
 \end{itemize}
 
 \begin{figure}[h!]
 \centering
 \includegraphics[width=0.7\linewidth]{fig/java-tomcat-clustering}
-\caption{}
+\caption{Tomcat Clustering}
 \label{fig:java-tomcat-clustering}
 \end{figure}
 
@@ -51,7 +51,7 @@ Mit Tomcat sind 6 sind Features gekommen, welches High Availability (HA) ermögl
 \begin{figure}[h!]
 \centering
 \includegraphics[width=0.7\linewidth]{fig/java-infra}
-\caption{Beispiel Setup}
+\caption{Apache + Tomcat + MySQL}
 \label{fig:java-infra}
 \end{figure}
 
@@ -68,7 +68,7 @@ Mit Tomcat 7 werden nun auch WebSockets unterstützt, welches eine full-duplex s
 
 \begin{figure}[h!]
 	\centering
-	\includegraphics[width=0.7\linewidth]{fig/java-websocket-servlet}
+	\includegraphics[width=0.6\linewidth]{fig/java-websocket-servlet}
 	\caption{Websocket Servlet}
 	\label{fig:java-websocket-servlet}
 \end{figure}
@@ -76,7 +76,7 @@ Mit Tomcat 7 werden nun auch WebSockets unterstützt, welches eine full-duplex s
 
 \newpage
 \section{Servlet}
-Servlets sind in Java implementierte Anwendungskomponenten, die auf einem Server ausgeführt werden, um dort Anfragen von Clients zu empfangen und zu bearbeiten. Sie erweitern die Funktionalität des Web Servers massiv. Servlets sind Java Klassen welche dynamisch die Requests verarbeiten und eine Response erzeugen, unabhängig vom Protokoll! Das \verb|GenericServlet| hat nur die Methode \verb|service()| und ist somit protokollunabhängig. Das \verb|HttpServlet| ist auf das HTTP Protokoll bezogen und überschreibt \verb|service()| um die definierten HTTP-Verb Methoden aufzurfen (\verb|doGet() doPost()|). Auf der Klasse \verb|HttpServletRequest| kann \verb|getParameter()| aufgerufen werden um an die GET- und POST-Parameter zu gelangen. Servlets müssen innerhalb des Servlet-Containers laufen., welcher den Lebenszyklus der Servlets verwaltet (\verb||init()|, \verb||service()|, \verb||destroy()|).
+Servlets sind in Java implementierte Anwendungskomponenten, die auf einem Server ausgeführt werden, um dort Anfragen von Clients zu empfangen und zu bearbeiten. Sie erweitern die Funktionalität des Web Servers massiv. Servlets sind Java Klassen welche dynamisch die Requests verarbeiten und eine Response erzeugen, unabhängig vom Protokoll! Das \verb|GenericServlet| hat nur die Methode \verb|service()| und ist somit protokollunabhängig. Das \verb|HttpServlet| ist auf das HTTP Protokoll bezogen und überschreibt \verb|service()| um die definierten HTTP-Verb Methoden aufzurfen (\verb|doGet() doPost()|). Auf der Klasse \verb|HttpServletRequest| kann \verb|getParameter()| aufgerufen werden um an die GET- und POST-Parameter zu gelangen. Servlets müssen innerhalb des Servlet-Containers laufen, welcher den Lebenszyklus der Servlets verwaltet (\verb|init()|, \verb|service()|, \verb|destroy()|).
 
 \paragraph{Servlet-Lebenszyklus}
 \begin{description}
@@ -108,16 +108,14 @@ public class ExampleServlet extends HttpServlet {
 \end{lstlisting}
 
 \paragraph{Struktur eine Web-Applikation}
-Die Verzeichnisstruktur ist festgelegt. Das Root-Verzeichnis (Document Root) wird zum 'Context-Path' gemappt. Alles innerhalb des Root-Verzeichnis aus das spezielle WEB-INF ist von aussen zugreifbar.
-
-WEB-INF Verzeichnis beinhaltet:
+Die Verzeichnisstruktur ist festgelegt. Das Root-Verzeichnis (Document Root) wird zum 'Context-Path' gemappt. Alles innerhalb des Root-Verzeichnis ausser das WEB-INF Verzeichnis ist von aussen zugreifbar. Das WEB-INF Verzeichnis beinhaltet:
 \begin{itemize}
 	\item WEB-INF/web.xml - Deployment Descriptor. Hier liegen Meta-Informationen vor.
 	\item WEB-INF/classes - Kompilierte Klassen
 	\item WEB-INF/lib - Verwendete Bibliotheken der Web-Applikation
 \end{itemize}
 
-Anschliessend wird mit dem Deployment Deskriptor und den Servlet Klasse zusammen (und ev. weiteren benötigten Klassen und Dateien) eine Archiv-Datei erzeugt (.war –Datei). Diese kann anschliessend deployt werden.
+Anschliessend wird mit dem Deployment Deskriptor und den Servlet Klasse zusammen (und evtl. weiteren benötigten Klassen und Dateien) eine Archiv-Datei erzeugt (.war –Datei). Diese kann anschliessend deployt werden.
 
 \begin{lstlisting}[caption=web.xml Sample]
 <web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
