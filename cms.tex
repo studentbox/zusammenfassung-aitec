@@ -15,7 +15,7 @@ In einer \textbf{N-Tier Architektur} bildet ein oder mehreren Server einen Tier 
 
 Als \textbf{Server} wird ein Prozess auf einem Host (Programm) aber auch ein Host in einem Netzwerk (Maschine) bezeichnet. Die erste Bezeichnung trifft es oft besser, denn es können verschieden Server auf einem und demselben Host laufen. Wobei die angebotene Funktionalität von der Art der Software, dem Netzwerkstack, dem BS sowie der Hardware abhängt.
 
-In der \textbf{eBusiness Architektur} ist wichtig zu wissen, dass nicht nur der eigene Tier-Stack funktionieren muss, sondern übers Internet oft auch Third-party services angebunden werden (Ads, Payment, ..).
+In der \textbf{eBusiness Architektur} ist wichtig zu wissen, dass nicht nur der eigene Tier-Stack funktionieren muss, sondern übers Internet oft auch Third-party services angebunden werden (Ads, Payment usw.).
 
 Ein \textbf{Web-Server} handhabt das HTTP Protokoll. Einzelne Connections bei HTTP 1.0 und persistente Connections bei HTTP 1.1 und nun kommt HTTP 2.0 (SPDY). Web-Server laufen in Multi-Process oder Multi-Threaded Modus. Der Multi-Threaded Modus ist sexier, aber kann den ganzen Prozess in Mitleidenschaft ziehen, falls was schief geht. Multi-Prozess ist teurer aber arbeiten vollständig unabhängig.
 
@@ -143,7 +143,7 @@ Falls ein Load Balancer eingesetzt wird, muss man sich fragen, wo die Session-Da
 	\item[Central Session Store:] Auch bekannt als Shared Session Store Cluster. Alle Server verwenden einen zentralen Speichern für die Session-Daten. Dieser zentraler Speicher ist aber ein SPOF (single point of failure).
 	\item[Clustered Session Management:] Auch bekannt als Shared-nothing Cluster. In dieser Variante werden alle Server in einen Cluster gesetzt. Die Server replizieren ihren Status. Es ist einfach aufzusetzen und stellt keinen SPOF dar. Lese-Operationen gehen schnell, Schreib-Operationen generieren Netzwerk-Traffic. Dieser zusätzliche Traffic steigt exponentiell zu den Anzahl an Knoten im Cluster.
 	\item[Sticky Session with Central Session Store:] Hat den Vorteil, dass es keinen Downtime Impact mehr gibt. Und wir generieren nicht zusätzlich I/O.
-	\item[Stick Session with Clustered Session Management:] Keine spezifischen Vorteile.
+	\item[Sticky Session with Clustered Session Management:] Keine spezifischen Vorteile.
 \end{description}
 Als Empfehlung sollte wo immer möglich Clustered Session Management verwendet werden, falls die Zahl der Server klein ist und nicht gerade viele Session-Daten geschrieben werden müssen. Falls dies nicht der Fall ist, muss auf Central Session Store zurückgegriffen werden. Und Sticky Session nur verwenden, wenn notwendig.
 
