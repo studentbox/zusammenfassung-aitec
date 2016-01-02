@@ -13,12 +13,12 @@ Das Arduino ist ein \textbf{Mikrocontroller} mit einem 8-Bit-Prozessor und kann 
 \section{Architektur}
 Projekte im IOT Bereich fordern immer eine Anbindung an ein Netzwerk. Die Werte die gemessen werden müssen publiziert oder abgerufen werden. Es gibt grundsätzlich zwei Arten:
 \begin{description}
-	\item[Arduino als Server] Der Arduino kann als REST-Server dienen. Er kann die Daten speichern und auf Anfrage ausliefern. Aber - Der Arduino ist eigentlich ein Mikroprozessor und solche Aufgaben sollten an andere Stelle delegiert werden. 
-	\item[Arduino als Client] Der Arduino schickt seine Daten an einen Server. Von da aus können die Daten beliebig ausgewertet werden. Viel bessere Variante.
+	\item[POLLING: Arduino als Server:] Der Arduino kann als REST-Server dienen. Er kann die Daten speichern und auf Anfrage ausliefern. Aber - Der Arduino ist eigentlich ein Mikroprozessor und solche Aufgaben sollten an andere Stelle delegiert werden. Dadurch können auch Steuersignale an den Server gesendet werden. (Achtung: Durch zu viel Pollen kann der Arduino überlastet werden.)
+	\item[PUSH: Arduino als Client] Der Arduino schickt seine Daten an einen Server. Von da aus können die Daten beliebig ausgewertet werden. Viel bessere Variante. Wir belasten somit das Netzwerk nicht mit unnötigen Polls. Falls keine Verbindung zum Server aufgebaut werden kann, muss um die Persistenz gesorgt werden. Es können keine Steuersignale an den Server gesendet werden.
 \end{description}
 
 \section{Arduino Plattform}
-Die Arduino Plattform besteht aus Hard- und Software (siehe Abbildung \ref{fig:aruduino-projekt}). Als Grundlage dient das \textbf{Arduino-Board}, welches mit \emph{Shields} (steckbaren Aufsätzen) erweitert werden kann. Wir kennen folgende Shields:
+Die Arduino Plattform besteht aus Hard- und Software (siehe Abbildung \ref{fig:aruduino-projekt}). Ermöglicht das Einbinden von Ansprechen von intelligenten Sensoren (vernetzte Sensoren). Die Daten können lokal (lokale Entscheidungen) oder an eine übergeordnet (übergeordnete Entscheidungen) ausgewertet werden. Als Grundlage dient das \textbf{Arduino-Board}, welches mit \emph{Shields} (steckbaren Aufsätzen) erweitert werden kann. Wir kennen folgende Shields:
 \begin{description}
 	\item[Grove (base shield)] Kann auf das Standard-USB-Board aufgesteckt werden und ermöglicht Steckverbindungen für Sensoren und Aktoren.
 	\item[Ethernet Shield] Kann auch auf das Standard-USB-Board aufgesteckt werden und ermöglicht das Verbinden mit einem LAN (nutzt Arduino Ethernet Library).
