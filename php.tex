@@ -5,7 +5,7 @@
 
 \section{Formulare}
 
-Früher konnte man von einem Formular direkt Variablen im PHP-Code überschreiben. Dadurch entstanden grosse Sicherheitslücken. Das führte dazu dass die superglobalen Variablen ausgeschaltet wurden (in php.ini \verb|register_globals=off|). Werte von Formularen werden nun sicher über spezielle Arrays übertragen:
+Früher konnte man von einem Formular direkt Variablen im PHP-Code überschreiben. Dadurch entstanden grosse Sicherheitslücken. Das führte dazu dass die \textbf{superglobalen} Variablen ausgeschaltet wurden (in php.ini \verb|register_globals=off|). Werte von Formularen werden nun sicher über spezielle Arrays übertragen:
 
 \begin{description}
 	\item[POST-Methode:] \verb|$_POST[]| oder \verb|$HTTP_POST_VARS[]|
@@ -14,7 +14,7 @@ Früher konnte man von einem Formular direkt Variablen im PHP-Code überschreibe
 	\item[Cookie:] \verb|$_COOKIE[]| oder \verb|$HTTP_COOKIE_VARS[]|
 \end{description}
 
-Externe Dateien können entweder über \verb|include()| oder \verb|require()| eingebunden werden. \verb|require()| sollte bevorzugt werden, weil die Ausführung des Skriptes unterbricht, falls die Datei nicht gefunden wurde.
+Externe Dateien können entweder über \verb|include()| oder \verb|require()| eingebunden werden. \verb|require()| sollte bevorzugt werden, weil die Ausführung des Skriptes gestoppt und ein fatal error geworfen wird. Tritt im Falle von \verb|include()| ein Fehler auf, dann wird das einbindende Skript weiterausgeführt.
 
 \section{Session}
 
@@ -173,7 +173,7 @@ Die wichtigste Regel ist niemals Benutzereingaben zu vertrauen, sondern diese im
 	\item[\$\_ENV] Environment Variabeln
 	\item[\$\_REQUEST] Kombination von GET/POST/COOKIE
 \end{description}
-Grundsätzlich sollten register globals deaktiviert werden. Ist aber nicht mehr relevant weil es standardmässig überall deaktiviert ist. Das super-globale \verb|$_REQUEST|-Arry ist anfällig für Wertekollision (siehe Listing \ref{lst:wertekollision}).
+Grundsätzlich sollten register globals deaktiviert werden. Ist aber nicht mehr relevant weil es standardmässig überall deaktiviert ist. Das super-globale \verb|$_REQUEST|-Array ist anfällig für Wertekollision (siehe Listing \ref{lst:wertekollision}).
 
 \begin{lstlisting}[caption=\$\_REQUEST Wertekollison, label=lst:wertekollision]
 echo $_GET['id']; // 1
@@ -201,7 +201,7 @@ http://example.com/script.php?path=57fb06d7...
 
 \subsection{XSS}
 
-Cross Site Scripting (XSS) ist eine Situation, bei welcher durch den Benutzer Code injiziert wird, der anschliessend ohne weitere Prüfung angezeigt wird. XSS kann einfach verhindert werden durch Eingabefilter mit folgenden Möglichkeiten:
+Cross Site Scripting (XSS) ist eine Situation, bei welcher durch den Benutzer Code injiziert wird, der anschliessend ohne weitere Prüfung angezeigt wird. Das resultiert in Session take-over, Password Diebstahl oder User Tracking durch Dritte. XSS kann einfach verhindert werden durch Eingabefilter mit folgenden Möglichkeiten:
 \begin{description}
 	\item[htmlspecialchars()]  Encodes ', ", <, >, \&
 	\item[htmlentities()] Konvertiert alles, wofür es eine HTML Entity gibt
@@ -243,6 +243,31 @@ ini_set("error_log", "syslog");
 
 Man sollte Files \textit{niemals} im Web Root Directory speichern ausser sie müssen dort sein. Durch .htaccess kann Zugriff beschränkt werden. Konfigurations-Files und Scripts enthalten üblicherweise sensitive Daten welche unter Verschluss gehalten werden sollten. Auch wenn sie vom Web aus nicht zugreifbar sind können sie trotzdem durch Benutzer des Systems eingesehen werden. Deshalb sollten diese Einstellungen am besten über Umgebungsvariablen vorgenommen werden.
 
+\begin{lstlisting}[caption=Konfigurationen]
+Lösung 1: Konfiguration via ini-Direktive im httpd.con laden.
+File: mysql.cnf
+mysql.default_host=localhost
+mysql.default_user=forum
+mysql.default_password=secret
+
+File: httpd.conf
+<VirtualHost 1.2.3.4>
+Include "/site_12/mysql.cnf"
+</VirtualHost>
+
+Lösung 2: Für alle anderen Einstellungen Apache Enviornment Variabeln verwenden.
+File: misc_config.cnf
+SetEnv NNTP_LOGIN "login"
+SetEnv NNTP_PASS "passwd"
+SetEnv NNTP_SERVER "1.2.3.4"
+
+File: httpd.conf
+<VirtualHost 1.2.3.4>
+Include "misc_config.cnf"
+</VirtualHost>
+\end{lstlisting}
+
+
 \subsection{Session Security}
 
 Während des Besuches der Site ist die Session die effektive Identität des Besuchers. Falls auf eine solche Session ein Dritter Zugriff erlangen kann, so ist es ihm möglich in dessen Identität zu schlüpfen. Um so ein Session Diebstahl zu verhindern kann für jeden Request eine neue Session erzeugt werden, dann kann aber z.B. der Back-Button nicht mehr verwendet werden. Eine andere Session Sicherungstechnik ist, die Browser Signatur zu vergleichen. Allerdings kann auch diese gefälscht werden. Es gibt CSRF-Tokens als mögliche Abwehr, aber diese Technik ist zu \textit{adnvanced} für dieses Modul. Listing \ref{lst:session} zeigt die beiden Möglichkeiten eine Session abzusichern.
@@ -264,8 +289,11 @@ $chk = @md5(
 
 if (!empty($_SESSION))
 	$_SESSION['key'] = $chk;
-else if ($_SESSION['key'] != $chk)
+elseif ($_SESSION['key'] != $chk)
 	session_destroy();
 \end{lstlisting}
 
 Standardmässig werden PHP Sessions als Files im Directory \verb|/tmp| abgelegt. Das beutet aber auch dass jeder Benutzer des Systems diese aktiven Sessions einsehen und ggf. übernehmen oder modifizieren kann. Deshalb sollte der Speicherpfad von Sessions auf ein sicheres Verzeichnis umgestellt werden.
+
+\subsection{Security Through Obscurity}
+Gebe möglichst wenig über dich Preis. Das ist nicht wirklich ein Security Ansatz, aber macht es für die Angreifer ein bisschen schwerer. Beispielsweise mittels \verb|expose_php=off| und \verb|ServerSignature=off|.

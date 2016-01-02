@@ -190,8 +190,8 @@ Weil diese Ansätze unbefriedigend waren hat man in HTML 5 Web Storage eingefüh
 Listing \ref{lst:web-storage} zeigt die Verwendung des Web Storages.
 
 \begin{lstlisting}[language=Javascript, caption=Web Storage, label=lst:web-storage]
-// Beide Objekte haben das selbe API windows.sessionStorage 
-windows.localStorage
+// Beide Objekte haben das selbe API window.sessionStorage 
+window.localStorage
 
 // kreiert (oder überscheibt) ein (session oder local) Storage Objekt
 sessionStorage.setItem('ModulName', 'Advanced Internet Technologies')
@@ -202,11 +202,11 @@ sessionStorage.clear() // löscht alle keys in einer Session
 sessionStorage.key(position) // gibt die position des key in der Liste
 
 // wird ausgelöst wenn localStorage durch ein anderes // tab/window verändert wurde. Der name des events ist 'storage' 
-Dokument.addEventListener('storage', function(event) {
-event.key // modifizierter key
-event.oldValue // alte value des modifizierten key oder null
-event.newValue // neue value des modifizierten key
-event.url // URL der Seite die den Speicher modifiziert hat
+document.addEventListener('storage', function(event) {
+	event.key // modifizierter key
+	event.oldValue // alte value des modifizierten key oder null
+	event.newValue // neue value des modifizierten key
+	event.url // URL der Seite die den Speicher modifiziert hat
 })
 \end{lstlisting}
 
