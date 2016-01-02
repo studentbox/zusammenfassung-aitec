@@ -1,4 +1,230 @@
 \chapter{HTML 5}
 
-% Gemäss den Lernzielen die im Unterrichtsmaterial festgehalten sind.
-% Dokumente: 06 HTML5.pdf, Beispiele und Übungen.
+\section{Status Quo und Ausblick}
+
+HTML 5 unterstützt insbesondere das Semantic Web\footnote{Begriffe werden mit Kontextinformationen ergänzt, damit auch Maschinen den Kontext verstehen} und Mobilität. HTML 5 kann mehr mit weniger Code (weniger generelle Tags), dadurch werden proprietäre Ansätze (wie Plug-ins) ersetzt. Es sind mehr spezifische Tags hinzugekommen um das semantische Web zu unterstützen (z.B. das neue sematische Tag \verb|<article>| anstelle von \verb|<div id="article">|). Dadurch wird eine neue Generation von Browser-basierenden Anwendungen ermöglicht.
+
+\section{GeoLocation}
+
+GeoLocation ist nützlich um einem Anwender die richtigen Informationen am richtigen Ort zuzustellen (Ubiquitous Computing). Vor allem für mobile Geräte sehr interessant (z.B. Reisen, Shoppen, Essen, User Tracking), aber auch bei Anwendern mit fixen Geräten nützlich (z.B. Google Maps, Spracherkennung). Die Position kann auch ohne GeoLocation mit folgenden Techniken bestimmt werden:
+\begin{description}
+	\item[Basierend auf der IP Adresse] \hfil \\
+	Mit dieser Methode kann nur die Region bestimmt werden. Die Position kann z.B. über einen VPN-Service verfälscht werden. Zudem muss die Location muss via (kostenpflichtigem) Lookup Service bestimmet werden.
+	\item[Durch explizite Eingabe des Anwender] \hfil \\
+	Die Position wird durch Eingabe des Ortsnamen oder der Postleitzahl bestimmt. Die Eingabe ist mühsam und ebenfalls nicht sehr genau. Allerdings kann eine unabhängie Location eingegeben werden.
+\end{description}
+Um die Position mit GeoLocation zu bestimmen gibt es folgende Techniken:
+\begin{description}
+	\item[Mobiltelefonnetze] \hfil \\
+	Die Position kann schnell über Triangulierung basierend auf der Antennenposition bestimmt werden. Die Genauigkeit kann bi zu mehreren Kilometern variieren. Zudem ist diese Technik nicht auf allen Geräten möglich (z.B. Laptop).
+	\item[Wi-Fi] \hfil \\
+	Mit der MAC Adresse und der Signalstärke wird der Anstand zum Access Point bestimmt. Da der Name eines Access Points (SSID) öffentlich ist können MAC Adressen der Location des Access Points zugewiesen werden. Google Earth speichert diese Information und kann so Positionsbestimmungen mit einer Genauigkeit von 20 bis 200 Meter durchführen.
+	\item[GPS Koordinaten] \hfil \\
+	Diese Technik basiert auf den entsprechenden Gerätesensor und macht eine Positionsbestimmungen mit bis zu einem Meter Genauigkeit. Die Genauigkeit kann stark variieren und der Verbindungsaufbau zu den Satelliten dauert. Kann zusätzlich zur Position weitere Informationen liefern (Geschwindigkeit, Höhe über Meer, ..). Da die Batterie des mobilen Gerätes stark belastet wird, sollte GPS nur verwendet werden wenn es wirklich benötigt wird.
+\end{description}
+
+GPS beschreibt eine Position als Koordinaten. Diese bestehen aus dem Breitengrad (Latitude), welcher den Winkel vom Äquator zum Pol beschreibt (90 bis -90$^\circ$ Nordpol bis Südpol) und aus dem Längengrad (Longitude), welcher den Winkel zum Prime Meridian beschreibt (180 bis -180$^\circ$ östlich bis westlich). Der Prime Meridian ist die Referenz Linie, die durch das Royal Observatory in Greenwich, London geht. Listing \ref{lst:geolocation} zeigt die GeoLocation API.
+
+\begin{lstlisting}[language=Javascript, caption=GeoLocation API, label=lst:geolocation]
+//einmaliges Lesen der Anwenderposition 
+navigator.geolocation.getCurrentPosition(successCallback, [errorCallback, positionOptions])
+
+// checking for location changes and firing the successCallback 
+var myID = navigator.geolocation.watchPosition(...);
+// ...
+// stops watchPosition from continuously 
+navigator.geolocation.clearWatch(myID);
+
+// The function called if getCurrentPosition is successful 
+// Returns a JavaScript object
+function successCallback(position) {
+	// millisecond timestamp 
+	position.timestamp;
+	
+	// may be converted into a JavaScript Date object 
+	var d = new Date(position.timestamp);
+	
+	// The three reliable coords attributes
+	position.coords.latitude;
+	position.coords.longitude;
+	position.coords.accuracy; // in meters
+	
+	// The four optional coords attributes
+	position.coords.altitude; // in meters
+	position.coords.altitudeAccuracy; // in meters
+	position.coords.speed; // in meters per second
+	position.coords.heading; // in degrees relative to north 90 = east, 180 = south
+}
+
+// A function that fires if something goes wrong 
+// The single argument is a JavaScript Object containing an error code (code) and a reason (message)
+function errorCallback(positionError) {
+	positionError.code; // 1, 2, or 3
+	positionError.message; // error message string not definied by all browsers
+	// possible messages
+	// 1: 'Permission to use Geolocation was denied!',
+	// 2: 'The position of the device could not be determined!',
+	// 3: 'The operation has timed out!'
+}
+
+// optional third argument, an Object of optional attributes
+// each attribute itself is also optional
+// true might enable GPS, default false 
+enableHighAccuracy: true
+// timeout before error is called 
+timeout: 6000 // 6 seconds, default Infinity
+// age of a cached location to be accepted 
+// acquire new location immediately if 0 
+maximumAge: 90000 // 90 seconds, default 0
+\end{lstlisting}
+
+\section{WebSockets}
+
+WebSockets ermöglichen das Erstellen einer bidirektionalen Verbindung zwischen einem Client-Browser und dem Webserver (vgl. UDP/TCD Sockets). Die Verbindung ist full-duplex (TCP), d.h. es können gleichzeitig Daten in beide Richtungen übertragen werden, dadurch kann der Server Daten zum Client pushen. Real-time Kommunikation ersetzt mehrere HTTP Requests (kein Polling mehr nötig), dadurch wird eine periodische und kontinuierliche Kommunikation wird möglich. Das Websocket-Interface hat folgende Attribute, welche sich abfragen lassen:
+\begin{description}
+	\item[\texttt{readyState}:] Status des Sockets (0: CONNECTING, 1: OPEN, 2: CLOSING, 3: CLOSED)
+	\item[\texttt{bufferedAmount}:] Daten im Buffer (0: all data has been sent, \#: \#bytes queued to be sent)
+	\item[\texttt{protocol}:] Das Subprotokoll welches vom Server ausgewählt wurde
+	\item[\texttt{binaryType}:] Typ der Daten die übertragen werden (Blob oder Arraybuffer)
+	\item[\texttt{url}:] Websocket URL (\verb|ws://| oder \verb|wss://|)
+\end{description}
+Zudem können diese Events registriert werden:
+\begin{description}
+	\item[\texttt{open}:] Der Client ist mit dem Server verbunden und bereit zur Benutzung (\verb|readyState: OPEN|)
+	\item[\texttt{close}:] Socket hat die Verbindung getrennt (\verb|readyState: CLOSE|)
+	\item[\texttt{message}:] Eine Nachricht wurde empfangen (\verb|MessageEvent.data| enthält die Nachricht)
+	\item[\texttt{error}:] Ein Fehler ist aufgetreten
+\end{description}
+Listing \ref{lst:websocket-client} zeigt ein Beispiel für einen einfachen Websocket-Client.
+
+\begin{lstlisting}[language=Javascript, caption=Websocket Client, label=lst:websocket-client]
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+	var socket = new WebSocket('ws://echo.websocket.org'); // Create Websocket
+	
+	socket.addEventListener('open', onOpen); // Register Open-Event
+	socket.addEventListener('close', onClose, false); // Register Close-Event
+	socket.addEventListener('message', onMessage, false); // Register Message-Event
+	socket.addEventListener('error', onError, false); // Register Error-Event
+	
+	function onOpen(event) {
+		var msg = 'Hello server!';
+		console.log('Connection open, sending message: ' + msg);
+		socket.send(msg); // Once the connection is open, send a message to the server
+	}, false);
+	
+
+	function onClose(event){
+		console.log('Connection closed.');
+	}
+	
+	function onMessage(event) {
+		console.log('Message received: ' + event.data + '');
+		socket.close(); // Close Websocket
+	}
+	
+	function onError(event) {
+		console.log('Something went wrong!');
+	}
+</script>
+</body>
+</html>
+\end{lstlisting}
+
+Auch die Server-Seite muss natürlich WebSockets entsprechend unterstützten. Hier gibt es eine Fülle von Ansätzen und Frameworks, nachfolgend einige Beispiel:
+\begin{itemize}
+	\item Vert.x Framework
+	\item Jetty
+	\item node.js und socket.io
+\end{itemize}
+Node.js ist eine Websocket Server Plattform welche auf JavaScript basiert und plattformunabhängig ist. Yahoo, PayPal, eBay, MS Azure bieten damit Stream-basierte Echtzeit-Dienste an, welche sich durch eine hohe Nebenläufigkeit auszeichnen. Node.js ist optimiert für Skalierbarkeit, d.h. eher weniger geeignet für CPU-Intensive Berechnungen und insbesondere relationale Datenbankzugriffe. Socket.io ist ein Echtzeit event-getriebenes Kommunikations-Modul für Socket Verbindungen (z.B. WebSocket). Es bietet Fallbacks für Browser ohne WebSockets, z.B. FlashSockets oder JSON polling. Listing \ref{lst:websocket-node} zeigt eine Client/Server Anwendung unter der Verwendung von node.js und socket.io.
+
+\begin{lstlisting}[language=Javascript, caption=Websocket node.js, label=lst:websocket-node]
+// Server
+var io = require('socket.io');
+
+// wait for a connection request from a client
+io.sockets.on('connection', function(socket) {
+	// On receiving an event 'echo' return an event 'echo' with the same data
+	socket.on('echo', function(data) {
+		socket.emit('echo', data);
+	});
+});
+// create a socket and listen to port 1338
+io.listen(1338);
+
+// Client
+<script src="//localhost:1338/socket.io/socket.io.js"></script>
+<script>
+	// create a socket and connect to the server
+	var socket = io();
+	
+	// on receiving an event 'echo' print the data to the console
+	socket.on('echo', function(data) {
+		console.log('received: ' + data);
+	});
+
+	// send message Hello World to the server
+	socket.emit('echo', 'Hello World');
+</script>
+\end{lstlisting}
+
+\section{Web Storage}
+
+Bei Desktop Applikationen können Daten persistent auf dem Filesystem oder in einer Datenbank speichern. Web Applikationen können nur kleine Datenmengen (wenige KB) lokal auf dem Client speichern. Das Speichern dieser Daten ist oftmals browserspezifisch. Vor HTML 5 gab es folgende Möglichkeiten Daten persistent auf dem Client zu speichern:
+\begin{description}
+	\item[Browser Cookies] wurden für Authentifizierung und Tracking entwickelt. Es können nur kleine Datenmengen (max. 4 KB) gespeichert werden. Cookies werden bei jedem Page-Request übertragen. Da sie oft unverschlüsselt übertragen werden, können sie ein Sicherheitsrisiko darstellen.
+	\item[Adobe Flash Cookies] ist ein proprietärer Ansatz zum Speichern von Anwenderpräferenzen, Anwendertracking und Game Progress. Es handelt sich dabei um lokal gespeicherte Objekte die nicht vom/zum Server übertragen werden müssen. Sie funktionieren browserunabhängig und können bis zu 100 KB speichern.
+	\item[Microsoft userData] ebenfalls ein proprietärer Ansatz für den Internet Explorer, welcher Objekte von bis zu 1 MB speichern kann.
+	\item[Google Gears] auch ein proprietärer Ansatz bei dem Objekte \textit{unlimitiert} gespeichert werden können. Wird durch HTML5 abgelöst und von Chrome nicht mehr unterstützt.
+\end{description}
+Weil diese Ansätze unbefriedigend waren hat man in HTML 5 Web Storage eingeführt. Damit können key-value pairs persistent auf dem Client gespeichert werden. Web Storage wird von den meisten Browsern unterstützt und kann bis zu 5 MB speichern (kann erhöht werden). Web Storage bietet zwei unterschiedliche Speichermöglichkeiten an:
+\begin{description}
+	\item[Session Storage] \hfil \\
+	 Eine separate Speicher-Session pro Webseite in einem Browserfenster. Daten bleiben bei page reload oder restore erhalten. Daten können aus Sicherheitsgründen \textbf{nicht} zwischen verschieden Seiten oder verschiedenen Windows ausgetauscht werden.
+ 	\item[Local Storage] \hfil \\
+ 	Daten können zwischen separaten Sessions ausgetauscht werden solange diese die gleiche \textit{Herkunft} haben. Daten der gleichen Website können aus verschiedenen Windows ausgetauscht werden.
+\end{description}
+Listing \ref{lst:web-storage} zeigt die Verwendung des Web Storages.
+
+\begin{lstlisting}[language=Javascript, caption=Web Storage, label=lst:web-storage]
+// Beide Objekte haben das selbe API windows.sessionStorage 
+windows.localStorage
+
+// kreiert (oder überscheibt) ein (session oder local) Storage Objekt
+sessionStorage.setItem('ModulName', 'Advanced Internet Technologies')
+// gibt die value oder null falls kein key sessionStorage.getItem('ModulName')
+
+sessionStorage.removeItem(key) // löscht einen key
+sessionStorage.clear() // löscht alle keys in einer Session
+sessionStorage.key(position) // gibt die position des key in der Liste
+
+// wird ausgelöst wenn localStorage durch ein anderes // tab/window verändert wurde. Der name des events ist 'storage' 
+Dokument.addEventListener('storage', function(event) {
+event.key // modifizierter key
+event.oldValue // alte value des modifizierten key oder null
+event.newValue // neue value des modifizierten key
+event.url // URL der Seite die den Speicher modifiziert hat
+})
+\end{lstlisting}
+
+\section{Web Workers}
+
+Web Workers bieten Multithreading für JavaScript. Web Workers sind eine prozessor- und speicherintensive Lösung
+d.h. Web Workers sind nicht für häufiges Instanziieren und Löschen konzipiert. Durch den Austausch (einer vereinfachten Form) von Web Messages können Web Workers und Parent kommunizieren. Web Messages werden auch zum Starten und zum Synchronisieren eines Web Workers verwendet. Listing \ref{lst:web-worker} zeigt wie ein Web Worker erstellt wird.
+
+\begin{lstlisting}[language=Javascript, caption=Web Worker, label=lst:web-worker]
+// Web Worker erstellen und ein JavaScript übergeben 
+var myWorker = new Worker('workerScript.js');
+
+// Web Worker starten durch das Senden einer leeren Message. Hierfür braucht der Web Worker keinen Event Listener 
+myWorker.postMessage('');
+// oder durch das Senden einer Input Message. Jetzt braucht der Web Worker 
+// einen Event Listener
+myWorker.postMessage('Verarbeite die Zahl 4711');
+
+// Web Worker beenden
+myWorker.terminate();
+\end{lstlisting}
